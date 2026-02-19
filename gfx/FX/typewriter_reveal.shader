@@ -62,16 +62,29 @@ PixelShader =
 			float numberOfLines = floor(Offset.x/1000);
 			float linesPerSecond = 0.4;
 
-			float vTime = (Time - AnimationTime) * linesPerSecond;
-			float yRoundedTime = ceil(vTime)/numberOfLines;
-			float xRoundedTime = floor(vTime*charactersPerLine)/charactersPerLine - floor(v.vTexCoord.y*numberOfLines);
-			
-			if(v.vTexCoord.x <= xRoundedTime && v.vTexCoord.y <= yRoundedTime){
-				return float4(0.0, 0.0, 0.0, 0.0);
+			float t = (Time - AnimationTime) * linesPerSecond;
+
+			float currentLine = floor(t);
+			float currentChar = floor(frac(t) * charactersPerLine);
+
+			float cellX = floor(v.vTexCoord.x * charactersPerLine);
+			float cellY = floor(v.vTexCoord.y * numberOfLines);
+
+			if(cellY > currentLine)
+				return tex2D(MapTexture, v.vTexCoord);
+
+			if(cellY == currentLine)
+			{
+				if(cellX == currentChar)
+					return float4(0.0, 0.0, 0.0, 1.0);   // cursor
+				else if(cellX < currentChar)
+					return float4(0.0, 0.0, 0.0, 0.0);   // already typed
+				else
+					return tex2D(MapTexture, v.vTexCoord);
 			}
-			else {
-				return tex2D( MapTexture, v.vTexCoord );
-			}
+
+			return float4(0.0, 0.0, 0.0, 0.0);
+
 		}
 	]]
 }
